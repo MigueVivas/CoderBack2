@@ -40,9 +40,9 @@ const urlMongo = process.env.MONGO_URL
 const connectMongoDB = async () => {
     try {
         await mongoose.connect(urlMongo);
-        console.log("Conectado con exito a MongoDB usando Moongose.");
+        console.log("Conectado a MongoDB usando Moongose.");
     } catch (error) {
-        console.error("No se pudo conectar a la BD usando Moongose: " + error);
+        console.error("No se pudo conectar a MongoDB usando Moongose: " + error);
         process.exit();
     }
 };
