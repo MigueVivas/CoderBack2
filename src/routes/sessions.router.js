@@ -2,6 +2,7 @@ import { Router } from 'express';
 import passport from 'passport';
 import userModel from '../models/user.model.js'
 import { isValidPassword, generateJWToken } from '../utils.js'
+import { passportCall } from "../utils.js";
 
 const router = Router();
 
@@ -57,6 +58,17 @@ router.post("/login", async (req, res) => {
 router.get("/logout", (req, res) => {
     res.clearCookie("jwtCookieToken");
     res.redirect("/users/login");
+});
+
+router.get("/current", passportCall("jwt"), (req, res) => {
+    if (!req.user) {
+        return res.status(401).json({ status: "error", message: "Usuario no autenticado" });
+    }
+
+    res.status(200).json({
+        status: "success",
+        payload: req.user
+    });
 });
 
 export default router

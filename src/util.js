@@ -45,24 +45,21 @@ export const passportCall = (strategy) => {
 }
 
 
-export const cookieExtractor = req => {
+export const cookieExtractor = (req) => {
     let token = null;
-    console.log("CookieExtractor");
-    console.log("req.cookies", req);
-    console.log("req.cookies", req.cookies);
+    console.log("Ejecutando cookieExtractor...");
 
     if (req && req.cookies) {
-        console.log("Cookies presentes: ");
-        console.log(req.cookies);
+        console.log("Cookies presentes en la petición:", req.cookies);
+
         token = req.cookies['jwtCookieToken'];
-
-
-        console.log("Token obtenido desde Cookie:");
-        console.log(token);
+        console.log("Token extraído:", token || "No se encontró token");
+    } else {
+        console.log("No hay cookies en la petición.");
     }
 
     return token;
-}
+};
 
 export const authorization = (role) => {
     return async (req, res, next) => {
