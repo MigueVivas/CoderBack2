@@ -1,8 +1,10 @@
-const form = document.getElementById('loginForm');
+const form = document.getElementById('loginForm')
 
 form.addEventListener('submit', e => {
     e.preventDefault();
+    
     const data = new FormData(form);
+
     const obj = {};
     data.forEach((value, key) => obj[key] = value);
     fetch('/api/sessions/login', {
@@ -10,21 +12,11 @@ form.addEventListener('submit', e => {
         body: JSON.stringify(obj),
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify(obj)
     }).then(result => {
-        if (result.status === 200) {
-
-            result.json()
-                .then(json => {
-                    console.log(json);
-                    console.log("Cookies generadas:");
-                    console.log(document.cookie)
-                    alert("Login realizado con exito!")
-                })
-            window.location.replace('/users');
-        } else if (result.status === 401) {
-            console.log(result);
-            alert("Login invalido revisa tus credenciales!");
+        if(result.status === 200) {
+            window.location.replace('/users')
         }
     })
 })

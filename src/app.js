@@ -1,49 +1,81 @@
 import express from 'express';
-import handlebars from 'express-handlebars';
-import __dirname from './utils.js';
+import mongoose from 'mongoose';
+import handlebars from 'express-handlebars'
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv'
-import cookieParser from 'cookie-parser';
-import passport from 'passport';
-import initializePassport from './config/passport.config.js';
-import sessionsRouter from './routes/sessions.router.js'
-import usersViewRouter from './routes/users.views.router.js';
+import FileStore from 'session-file-store';
 
+import usersViewRouter from './routes/users.views.router.js';
+import sessionsRouter from './routes/sessions.router.js'
+import viewsRouter from './routes/views.routes.js';
+import __dirname from './util.js';
 
 const app = express();
-dotenv.config()
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const SERVER_PORT = 9090;
 
-app.engine('handlebars', handlebars.engine());
+app.use(express.json());
+app.use(express.urlencoded({extended: true }))
+
+app.engine('handlebars', engine({
+    layoutsDir: path.resolve('src/views/layouts'),
+    defaultLayout: 'main'
+}));
+app.use("/api/products", productRouter);
+app.use("/api/carts", cartRouter);
+app.use("/", viewsRouter);
 app.set('views', __dirname + '/views')
 app.set('view engine', 'handlebars');
 app.use(express.static(__dirname + '/public'));
 
-app.use(cookieParser("CoderS3cr3tC0d3"));
 
-initializePassport()
-app.use(passport.initialize())
+const MONGO_URL = "mongodb://localhost:27017/projectBackend2?retryWrites=true&w=majority";
 
-app.use("/users", usersViewRouter); 
-app.use("/api/sessions", sessionsRouter);
+app.use(session(
+    {  
+        store: MongoStore.create({
+            mongoUrl: MONGO_URL,
+            mongoOptions: { useNewUrlParser: true, useUnifiedTopology: true },
+            ttl: 20,
+        }),
+        secret: 'your-secret-key',
+        resave: true,
+        saveUninitialized: true,
+    }
+))
 
-
-const SERVER_PORT = process.env.SERVER_PORT
-app.listen(SERVER_PORT, () => {
-    console.log("Servidor escuchando por el puerto: " + SERVER_PORT);
+app.get('/ping', (req, res) => {
+    res.send("pong")
 });
 
-const urlMongo = process.env.MONGO_URL
+app.use('/', viewsRouter)
+app.use('/users', usersViewRouter)
+app.use('/api/sessions', sessionsRouter)
+
+
+app.listen(SERVER_PORT, () => {
+    console.log(`Server is running on port ${SERVER_PORT}`);
+});
+
+io.on("connection", (socket) => {
+    console.log("Nuevo usuario conectado!");
+
+    socket.on("newProduct", async (productData) => {
+        try {
+            const newProduct = await Product.create(productData);
+            io.emit("productAdded", newProduct);
+        } catch (error) {
+            console.error("Error añadiendo producto: ", error.message);
+        }
+    });
+});
+
 const connectMongoDB = async () => {
     try {
-        await mongoose.connect(urlMongo);
-        console.log("Conectado a MongoDB usando Moongose.");
+        await mongoose.connect(MONGO_URL)
+        console.log("Connected to MongoDB");
     } catch (error) {
-        console.error("No se pudo conectar a MongoDB usando Moongose: " + error);
+        console.log("Failed to connect to MongoDB");
         process.exit();
     }
-};
+}
 connectMongoDB();
