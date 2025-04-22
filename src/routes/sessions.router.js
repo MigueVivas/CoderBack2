@@ -37,8 +37,8 @@ router.post('/login', async (req, res) => {
 
         if(!user) return res.status(400).json({ message: 'Usuario no encontrado' });
 
-        if (isValidPassword(user, password)){
-            return res.status(401).send({message: "Credenciales incorrectas", error: "ERROR"})
+        if (!isValidPassword(user, password)) {
+            return res.status(401).send({ message: "Credenciales incorrectas", error: "ERROR" });
         }
 
         req.session.user = {

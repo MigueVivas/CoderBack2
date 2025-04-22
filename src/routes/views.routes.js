@@ -3,9 +3,12 @@ import cookieParser from 'cookie-parser';
 import Product from "../models/products.model.js";
 
 const router = Router();
-const viewsRouter = express.Router();
 
-viewsRouter.get("/", async (req, res) => {
+// Configurar cookie parser con clave secreta
+router.use(cookieParser("CoderS3cr3tC0d3"));
+
+// Rutas con vistas
+router.get("/", async (req, res) => {
     try {
         const products = await Product.find().lean();
         res.render("home", { products });
@@ -14,7 +17,7 @@ viewsRouter.get("/", async (req, res) => {
     }
 });
 
-viewsRouter.get("/realtimeproducts", async (req, res) => {
+router.get("/realtimeproducts", async (req, res) => {
     try {
         const products = await Product.find().lean();
         res.render("realTimeProducts", { products });
@@ -23,26 +26,6 @@ viewsRouter.get("/realtimeproducts", async (req, res) => {
     }
 });
 
-//router.use(cookieParser());
-router.use(cookieParser("CoderS3cr3tC0d3"));
-
-router.get('/', (req, res) => {
-    res.render('index', {})
-});
-
-//Session management:
-router.get("/session", (req, res) => {
-    if (req.session.counter) {
-        req.session.counter++;
-        res.send(`Se ha visitado este sitio ${req.session.counter} veces.`);
-    } else {
-        req.session.counter = 1;
-        res.send("Bienvenido!");
-    }
-});
-
-//Login
-// http://localhost:9090/login?username=pepe&password=qwerty123
 router.get('/login', (req, res) => {
     const { username, password } = req.query;
     if (username !== 'pepe' || password !== 'qwerty123') {
@@ -59,23 +42,32 @@ router.get("/logout", (req, res) => {
     req.session.destroy(error => {
         if (error) {
             res.json({ error: "error logout", mensaje: "Error al cerrar la sesion" });
+        } else {
+            res.send("Sesion cerrada correctamente.");
         }
-        res.send("Sesion cerrada correctamente.");
     });
 });
 
-//Auth middleware:
+router.get("/session", (req, res) => {
+    if (req.session.counter) {
+        req.session.counter++;
+        res.send(`Se ha visitado este sitio ${req.session.counter} veces.`);
+    } else {
+        req.session.counter = 1;
+        res.send("Bienvenido!");
+    }
+});
+
 function auth(req, res, next) {
     if (req.session.user === 'pepe' && req.session.admin) {
         return next();
     } else {
         return res.status(403).send("Usuario no autorizado para ingresar a este recurso.");
     }
-
 }
 
 router.get('/private', auth, (req, res) => {
     res.send("Si estas viendo esto es porque pasaste la autorización a este recurso!");
 });
 
-export default router; viewsRouter
+export default router;

@@ -66,11 +66,7 @@ productRouter.get("/", async (req, res) => {
     });
   }
 });
-// Ejemplo para obtener productos por pag: GET /products (1era pag y 10 prod x defecto) --- /products?page=2
-// Ejemplo filtros: GET /products?category=ron --- GET /products?minPrice=5000&maxPrice=20000
-// Ejemplo ordenamineto: 
-// * Ordenar por precio: GET /products?sort=price&order=desc
-// * Ordenar por orden alfabetico en titulos: GET /products?sort=title&order=asc
+
 
 productRouter.post("/", async (req, res) => {
   try {
@@ -83,7 +79,7 @@ productRouter.post("/", async (req, res) => {
     await newProduct.save();
     res.status(201).send(newProduct);
   } catch (error) {
-    res.status(500).send({ status: "error", message: "Error al agregar productos" });
+    res.status(500).send({ status: "error", message: error.message });
   }
 });
 
@@ -98,23 +94,23 @@ productRouter.put("/:pid", async (req, res) => {
   }
 });
 
-productRouter.get("/:pid", async (req, res) => {
-  try {
-    const { pid } = req.params;
-    const product = await Product.findById(pid);
-    if (!product) throw new Error("Producto no encontrado");
-    res.status(200).send(product);
-  } catch (error) {
-    res.status(404).send({ message: error.message });
-  }
-});
-
 productRouter.get("/category/:category", async (req, res) => {
   try {
     const { category } = req.params;
     const products = await Product.find({ category });
     if (products.length === 0) throw new Error(`No hay productos en la categoría ${category}`);
     res.status(200).send(products);
+  } catch (error) {
+    res.status(404).send({ message: error.message });
+  }
+});
+
+productRouter.get("/:pid", async (req, res) => {
+  try {
+    const { pid } = req.params;
+    const product = await Product.findById(pid);
+    if (!product) throw new Error("Producto no encontrado");
+    res.status(200).send(product);
   } catch (error) {
     res.status(404).send({ message: error.message });
   }
